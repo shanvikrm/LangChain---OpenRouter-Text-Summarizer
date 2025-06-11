@@ -1,398 +1,171 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Text Summarizer</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --bg: #ffffff;
-            --text: #1f2937;
-            --gray-light: #f3f4f6;
-            --shadow: rgba(0, 0, 0, 0.1);
-        }
-
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            text-align: center;
-            background: linear-gradient(to right, var(--primary), var(--primary-dark));
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px var(--shadow);
-        }
-
-        .upload-section {
-            margin: 1.5rem 0;
-            padding: 1.5rem;
-            border: 2px dashed #e5e7eb;
-            border-radius: 8px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .upload-section:hover {
-            border-color: var(--primary);
-            background: var(--gray-light);
-        }
-
-        #file-input {
-            display: none;
-        }
-
-        .file-label {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background: var(--gray-light);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .file-label:hover {
-            background: #e5e7eb;
-        }
-
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1rem;
-            resize: vertical;
-            transition: border-color 0.3s ease;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-        }
-
-        button:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        #out {
-            white-space: pre-wrap;
-            background: var(--gray-light);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-top: 1.5rem;
-            min-height: 100px;
-        }
-
-        .loading {
-            position: relative;
-            opacity: 0.7;
-        }
-
-        .loading::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 24px;
-            height: 24px;
-            margin: -12px 0 0 -12px;
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .status {
-            margin-top: 1rem;
-            text-align: center;
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-    </style>
+  <meta charset="utf-8"/>
+  <title>Text Summarizer</title>
+  <style>
+    :root{
+      --primary:#2563eb;--primary-dark:#1d4ed8;--gray-light:#f3f4f6;
+    }
+    body{
+      font-family:'Inter',system-ui,sans-serif;max-width:800px;margin:2rem auto;
+      padding:0 1.5rem;line-height:1.6;color:#1f2937;
+    }
+    h1{
+      text-align:center;font-size:2rem;font-weight:700;margin-bottom:2rem;
+      background:linear-gradient(to right,var(--primary),var(--primary-dark));
+      -webkit-background-clip:text;color:transparent;
+    }
+    .container{background:#fff;padding:2rem;border-radius:12px;
+      box-shadow:0 4px 6px rgba(0,0,0,.1);}
+    .upload-section{margin:1.5rem 0;padding:1.5rem;border:2px dashed #e5e7eb;
+      border-radius:8px;text-align:center;}
+    #file-input{display:none}
+    .file-label{display:inline-block;padding:.75rem 1.5rem;background:var(--gray-light);
+      border-radius:6px;cursor:pointer}
+    textarea{width:100%;height:200px;padding:1rem;border:2px solid #e5e7eb;
+      border-radius:8px;font-size:1rem;resize:vertical}
+    .button-group{display:flex;gap:1rem;margin:1rem 0}
+    button{padding:.75rem 1.5rem;border:none;border-radius:6px;background:var(--primary);
+      color:#fff;font-weight:600;cursor:pointer}
+    button:hover{background:var(--primary-dark);transform:translateY(-1px)}
+    button:disabled{background:#9ca3af;cursor:not-allowed;transform:none}
+    #out{white-space:pre-wrap;background:var(--gray-light);padding:1.5rem;
+      border-radius:8px;min-height:100px;margin-top:1rem}
+    .loading{opacity:.7;position:relative}
+    .loading::after{content:"";position:absolute;top:50%;left:50%;width:24px;height:24px;
+      margin:-12px 0 0 -12px;border:3px solid rgba(0,0,0,.1);
+      border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .status{text-align:center;color:#6b7280;font-size:.875rem;margin-top:1rem}
+  </style>
 </head>
 <body>
-    <h1>LangChain × OpenRouter Summarizer</h1>
-    
-    <div class="container">
-        <div class="upload-section" id="drop-zone">
-            <input type="file" id="file-input" accept=".txt">
-            <label for="file-input" class="file-label">Choose a file or drag it here</label>
-            <div class="button-group">
-                <button onclick="summarizeFile()">Summarize File</button>
-                <button onclick="summarizeStream()">Stream Summary</button>
-            </div>
-        </div>
-
-        <textarea id="input" placeholder="Or paste your text here..."></textarea>
-        <div class="button-group">
-            <button onclick="summarize()" id="summarize-btn">Summarize Text</button>
-        </div>
-
-        <div id="out"></div>
-        <div class="status" id="status"></div>
+<h1>LangChain × OpenRouter Summarizer</h1>
+<div class="container">
+  <div class="upload-section" id="drop-zone">
+    <input type="file" id="file-input" accept=".txt"/>
+    <label for="file-input" class="file-label">Choose a file or drag it here</label>
+    <div class="button-group">
+      <button onclick="summarizeFile()">Summarize File</button>
+      <button onclick="summarizeStream()">Stream Summary</button>
     </div>
+  </div>
 
-    <script>
-        let currentController = null;
+  <textarea id="input" placeholder="…or paste text here"></textarea>
+  <div class="button-group">
+    <button onclick="summarize()" id="summarize-btn">Summarize Text</button>
+  </div>
 
-        function cleanup(clearInput = false) {
-            if (currentController) {
-                currentController.abort();
-                currentController = null;
-            }
-            document.getElementById("out").classList.remove("loading");
-            document.getElementById("summarize-btn").disabled = false;
-            if (clearInput) {
-                document.getElementById("input").value = '';
-                document.getElementById("file-input").value = '';
-                updateStatus('Summary complete');
-            }
+  <div id="out"></div>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const API="http://localhost:8000";
+let controller=null;
+
+function resetUI(clear=false){
+  if(controller){controller.abort();controller=null;}
+  document.getElementById("out").classList.remove("loading");
+  document.getElementById("summarize-btn").disabled=false;
+  if(clear){
+    document.getElementById("input").value="";
+    document.getElementById("file-input").value="";
+    setStatus("Done ✔");
+  }
+}
+function setStatus(msg){document.getElementById("status").textContent=msg;}
+
+// ------------ plain text → /summarize (JSON) --------------------------
+async function summarize(){
+  resetUI(false);
+  const text=document.getElementById("input").value.trim();
+  if(!text)return alert("Paste some text first!");
+  setStatus("Summarising…");
+  const btn=document.getElementById("summarize-btn");
+  btn.disabled=true;
+  const out=document.getElementById("out");
+  out.textContent="⏳ Working…";out.classList.add("loading");
+  try{
+    const res=await fetch(`${API}/summarize`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text})
+    });
+    if(!res.ok)throw new Error(res.status);
+    const data=await res.json();
+    out.textContent=data.summary||"(empty)";
+    resetUI(true);
+  }catch(e){
+    out.textContent="Error: "+e;resetUI(false);
+  }
+}
+
+// ------------ .txt file → /summarize-file (JSON) ----------------------
+async function summarizeFile(){
+  resetUI(false);
+  const f=document.getElementById("file-input").files[0];
+  if(!f)return alert("Choose a .txt file first!");
+  if(f.type!=="text/plain")return alert("Only .txt files supported");
+  setStatus("Uploading + summarising…");
+  const btn=document.getElementById("summarize-btn");btn.disabled=true;
+  const out=document.getElementById("out");
+  out.textContent="⏳ Working…";out.classList.add("loading");
+  const form=new FormData();form.append("txt",f);
+  try{
+    const res=await fetch(`${API}/summarize-file`,{method:"POST",body:form});
+    if(!res.ok)throw new Error(res.status);
+    const data=await res.json();
+    out.textContent=data.summary||"(empty)";
+    resetUI(true);
+  }catch(e){out.textContent="Error: "+e;resetUI(false);}
+}
+
+// ------------ stream → /summarize-stream (SSE) ------------------------
+async function summarizeStream(){
+  resetUI(false);
+  const text=document.getElementById("input").value.trim();
+  if(!text)return alert("Paste some text first!");
+  setStatus("Streaming summary…");
+  const btn=document.getElementById("summarize-btn");btn.disabled=true;
+  const out=document.getElementById("out");out.textContent="";out.classList.add("loading");
+  controller=new AbortController();
+  try{
+    const res=await fetch(`${API}/summarize-stream`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text}),
+      signal:controller.signal
+    });
+    if(!res.ok)throw new Error(res.status);
+    const reader=res.body.getReader();const decoder=new TextDecoder();
+    while(true){
+      const {value,done}=await reader.read();if(done)break;
+      const chunk=decoder.decode(value,{stream:true});
+      chunk.split("\n").forEach(line=>{
+        if(line.startsWith("data: ")){
+          const data=line.slice(6).trim();
+          if(data!=="[DONE]")out.textContent+=data+"\n";
         }
+      });
+    }
+    resetUI(true);
+  }catch(e){
+    out.textContent=(e.name==="AbortError")?"Cancelled":("Error: "+e);
+    resetUI(false);
+  }
+}
 
-        async function summarize() {
-            cleanup(false);  // Don't clear input yet
-            document.getElementById("summarize-btn").disabled = true;
-            updateStatus('Generating summary...');
-            const text = document.getElementById("input").value.trim();
-            if (!text) return alert("Please paste some text first!");
-            const output = document.getElementById("out");
-            output.textContent = "⏳ Generating summary...";
-            output.classList.add("loading");
-
-            currentController = new AbortController();
-            
-            try {
-                const response = await fetch("http://localhost:8000/summarize-text-stream", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text }),
-                    signal: currentController.signal
-                });
-
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const reader = response.body.getReader();
-                output.textContent = "";
-                
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) {
-                        cleanup(true);  // Clear input after successful completion
-                        break;
-                    }
-                    
-                    const chunk = new TextDecoder().decode(value);
-                    const lines = chunk.split('\n');
-                    
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const content = line.slice(6).trim();
-                            if (content === '[DONE]') continue;
-                            output.textContent += content + '\n';
-                        }
-                    }
-                }
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    output.textContent = "Summary generation cancelled";
-                } else {
-                    output.textContent = "Error: " + err;
-                }
-                cleanup(false);  // Don't clear input on error
-            }
-        }
-
-        async function summarizeFile() {
-            cleanup(false);  // Don't clear input yet
-            document.getElementById("summarize-btn").disabled = true;
-            updateStatus('Generating summary...');
-            const fileInput = document.getElementById("file-input");
-            const file = fileInput.files[0];
-            
-            if (!file) return alert("Please select a file first!");
-            if (file.type !== "text/plain") return alert("Only .txt files are supported!");
-
-            const formData = new FormData();
-            formData.append("txt", file);
-            
-            const output = document.getElementById("out");
-            output.textContent = "⏳ Generating summary...";
-            output.classList.add("loading");
-
-            currentController = new AbortController();
-
-            try {
-                const response = await fetch("http://localhost:8000/summarize-file-stream", {
-                    method: "POST",
-                    body: formData,
-                    signal: currentController.signal
-                });
-
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const reader = response.body.getReader();
-                output.textContent = "";
-                
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) {
-                        cleanup(true);  // Clear input after successful completion
-                        break;
-                    }
-                    
-                    const chunk = new TextDecoder().decode(value);
-                    const lines = chunk.split('\n');
-                    
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const content = line.slice(6).trim();
-                            if (content === '[DONE]') continue;
-                            output.textContent += content + '\n';
-                        }
-                    }
-                }
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    output.textContent = "Summary generation cancelled";
-                } else {
-                    output.textContent = "Error: " + err;
-                }
-                cleanup(false);  // Don't clear input on error
-            }
-        }
-
-        async function summarizeStream() {
-            cleanup(false);  // Don't clear input yet
-            document.getElementById("summarize-btn").disabled = true;
-            updateStatus('Generating summary...');
-            const text = document.getElementById("input").value.trim();
-            if (!text) return alert("Please paste some text first!");
-            const output = document.getElementById("out");
-            output.textContent = "⏳ Generating summary...";
-            output.classList.add("loading");
-
-            currentController = new AbortController();
-
-            try {
-                const response = await fetch("http://localhost:8000/summarize-stream", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text }),
-                    signal: currentController.signal
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const reader = response.body.getReader();
-                output.textContent = "";
-
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) {
-                        cleanup(true);  // Clear input after successful completion
-                        break;
-                    }
-                    const chunk = new TextDecoder().decode(value);
-                    output.textContent += chunk;
-                }
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    output.textContent = "Summary generation cancelled";
-                } else {
-                    output.textContent = "Error: " + err;
-                }
-                cleanup(false);  // Don't clear input on error
-            }
-        }
-
-        // Add drag and drop support
-        const dropZone = document.getElementById('drop-zone');
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, highlight, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, unhighlight, false);
-        });
-
-        function highlight(e) {
-            dropZone.classList.add('bg-blue-50');
-        }
-
-        function unhighlight(e) {
-            dropZone.classList.remove('bg-blue-50');
-        }
-
-        dropZone.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            document.getElementById('file-input').files = files;
-            summarizeFile();
-        }
-
-        // Update status messages
-        function updateStatus(message) {
-            document.getElementById('status').textContent = message;
-        }
-    </script>
+// ------------- drag & drop support -----------------------------------
+const DZ=document.getElementById("drop-zone");
+["dragenter","dragover","dragleave","drop"].forEach(evt=>{
+  DZ.addEventListener(evt,e=>{e.preventDefault();e.stopPropagation();},false);
+});
+DZ.addEventListener("drop",e=>{
+  document.getElementById("file-input").files=e.dataTransfer.files;
+  summarizeFile();
+});
+</script>
 </body>
 </html>

@@ -1,51 +1,71 @@
-import os, asyncio
+"""
+Central LangChain × OpenRouter summariser.
+
+✓ Loads .env that sits **next to this file** (path‑safe)
+✓ Exposes:
+    • summarize(text)          → single string
+    • summarize_stream(text)   → async generator (chunks)
+"""
+
+import os
+import pathlib
+import asyncio
 from dotenv import load_dotenv
+
 from langchain_openai import ChatOpenAI
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
 
-load_dotenv()  # reads .env
 
-def _openrouter_llm(model_name: str = "meta-llama/llama-3-8b-instruct:nitro"):
+ENV_PATH = pathlib.Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=ENV_PATH)          # ⚠️ .env must be here
 
-    """
-    Instantiate ChatOpenAI but hit the OpenRouter endpoint.
-    Derived from Bryce Guinta’s adapter pattern.:contentReference[oaicite:1]{index=1}
-    """
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+
+if not API_KEY:
+    raise RuntimeError("OPENROUTER_API_KEY missing – check .env")
+
+os.environ["OPENAI_API_KEY"] = API_KEY
+
+
+def _make_llm(model: str = "meta-llama/llama-3-8b-instruct:nitro") -> ChatOpenAI:
+    """Factory that returns a ChatOpenAI instance pointed at OpenRouter."""
     return ChatOpenAI(
-        base_url=os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
-        openai_api_key=os.getenv("OPENROUTER_API_KEY"),
-        model_name=model_name,
+        base_url=BASE_URL,
+        openai_api_key=API_KEY,
+        model_name=model,
         temperature=0.3,
     )
 
-# Build the summarization chain once at startup
-_llm = _openrouter_llm()
-_chain = load_summarize_chain(_llm, chain_type="map_reduce", return_intermediate_steps=True)
+_llm = _make_llm()
+_chain = load_summarize_chain(
+    _llm,
+    chain_type="map_reduce",
+    return_intermediate_steps=True,
+)
 
+# ---------------------------------------------------------------------
+# 3. Public helpers ----------------------------------------------------
+# ---------------------------------------------------------------------
 async def summarize(text: str) -> str:
-    """Asynchronously return a concise summary of raw text."""
-    try:
-        docs = [Document(page_content=text)]
-        result = await _chain.ainvoke({"input_documents": docs})
-        return result.get('output_text', '').strip()
-    finally:
-        await asyncio.sleep(0)  # Allow event loop to clean up
+    """Return a concise summary string."""
+    docs = [Document(page_content=text)]
+    result = await _chain.ainvoke({"input_documents": docs})
+    return result.get("output_text", "").strip()
 
 async def summarize_stream(text: str):
-    """Stream the summary process step by step."""
-    try:
-        docs = [Document(page_content=text)]
-        result = await _chain.ainvoke({"input_documents": docs})
-        
-        # First yield intermediate steps
-        if 'intermediate_steps' in result:
-            for step in result['intermediate_steps']:
-                yield step.strip()
+    """
+    Async generator that yields intermediate steps then final summary,
+    suitable for Server‑Sent Events (text/event‑stream).
+    """
+    docs = [Document(page_content=text)]
+    result = await _chain.ainvoke({"input_documents": docs})
 
-        # Finally yield the output text
-        if 'output_text' in result:
-            yield result['output_text'].strip()
-    finally:
-        await asyncio.sleep(0)  # Allow event loop to clean up
-
+    for step in result.get("intermediate_steps", []):
+        yield step.strip()
+    final = result.get("output_text", "").strip()
+    if final:
+        yield final
+    # tiny yield‑to‑loop so FastAPI streaming doesn’t stall
+    await asyncio.sleep(0)
